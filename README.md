@@ -1,95 +1,47 @@
 ﻿# KainFinder
 
-## Project overview
-
-KainFinder aims to help people discover food around a chosen point in Metro Manila. The **planned MVP** is: use browser location or choose a map point, submit a nearby search, and show matching places as map pins. Today this repository is a development scaffold: a responsive landing page, one Laravel health endpoint, and a local PostgreSQL service. There is no search, map, geolocation request, Google integration, restaurant data, or authentication yet.
-
-The proposed interface direction is in [docs/design.md](docs/design.md).
+KainFinder is a Metro Manila food discovery project. The intended MVP will let people search around their location or a chosen point and inspect places on a map. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
 
 ## Architecture
 
-Solid arrows show implemented or configured paths; dotted arrows are **planned**. The database connection is configured in Compose and Laravel, but the health route does not query it and container runtime has not been verified.
-
-```mermaid
-flowchart LR
-    Browser[Browser] -->|loads landing page| React[React and Vite]
-    Browser -->|manual health request| Laravel[Laravel API]
-    Laravel -->|configured PostgreSQL connection| Postgres[(PostgreSQL)]
-    Geo[Browser geolocation] -.->|planned location choice| React
-    React -.->|planned search request| Laravel
-    React -.->|planned map display| Maps[Google Maps]
-    Laravel -.->|planned place search| Places[Google Places]
-    Places -.->|planned results| Laravel
-```
-
-**Planned search flow:** the browser supplies a location or manually selected point; React sends a search request to Laravel; Laravel requests limited place data from Google Places and returns results for map pins. PostgreSQL access stays behind Laravel so database credentials and queries are never exposed to browser code. No search data flow is implemented today.
-
-## Repository structure
-
 ```text
-.
-├── compose.yaml                 # local frontend, API, PostgreSQL
-├── .env.example                 # Compose PostgreSQL variables
-├── .gitignore
-├── README.md
-├── frontend/
-│   ├── Dockerfile
-│   ├── index.html
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── vite.config.ts
-│   └── src/
-│       ├── App.tsx              # landing page
-│       └── index.css            # Tailwind import
-└── backend/
-    ├── Dockerfile
-    ├── .env.example
-    ├── composer.json
-    ├── composer.lock
-    ├── phpunit.xml
-    ├── bootstrap/app.php        # API route registration
-    ├── config/cors.php
-    ├── config/database.php
-    ├── routes/api.php
-    ├── tests/Feature/HealthTest.php
-    └── database/migrations/     # Laravel default tables; no restaurant table
+Browser → React / TypeScript / Vite / Tailwind (frontend/)
+Browser → GET /api/health → Laravel (backend/)
+Laravel → PostgreSQL (configured in Compose; live connection unverified)
 ```
 
-## Prerequisites and quick start
+The browser does not access PostgreSQL. Future Google Places requests belong in Laravel; a future map belongs in the frontend. The health route currently makes no database query.
 
-Use Docker Desktop with its **Linux engine running** and Docker Compose. The containers use Node.js 24, PHP 8.4, and PostgreSQL 18.6. Ports `5173`, `8000`, and `5432` must be available. From the repository root in PowerShell:
+## Repository
+
+- `frontend/src/App.tsx` — landing page; `frontend/package.json` — lint and build commands.
+- `backend/routes/api.php` — health route; `backend/tests/Feature/HealthTest.php` — response and CORS tests.
+- `compose.yaml` — local frontend, API, and PostgreSQL services.
+- `.env.example` and `backend/.env.example` — local configuration templates; `docs/design.md` — proposed interface reference.
+
+## Prerequisites and start
+
+Install Docker Desktop with its Linux engine running and Docker Compose. Ports `5173`, `8000`, and `5432` must be available. From the repository root in PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 Copy-Item backend/.env.example backend/.env
-# Replace the example PostgreSQL password in .env before starting.
+# Replace the example PostgreSQL password in .env with your own local value.
 docker compose build
 docker compose run --rm api php artisan key:generate
 docker compose up -d
 docker compose exec api php artisan migrate
 ```
 
-Open <http://localhost:5173> for the landing page and <http://localhost:8000/api/health> for the API response. Stop services with `docker compose down`. Docker startup and these URLs still need a live container check in this environment.
+Open <http://localhost:5173> for the landing page and <http://localhost:8000/api/health> for `{"success":true}`. Stop with `docker compose down`. These startup commands match the Compose configuration, but the running stack has **not** been verified in this workspace because the Docker Linux engine was unavailable.
 
 ## Environment variables
 
-The copied files are local and Git-ignored. Values in the examples are development placeholders, not production credentials. Compose passes root PostgreSQL values into Laravel, overriding `backend/.env` `DB_*` values; the latter are useful if running PHP outside Docker.
+Copy the example files; local `.env` files are Git-ignored. The root file supplies `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` to both database and API containers. Laravel's `backend/.env` supplies `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL`, `FRONTEND_URL`, and its local `DB_*`, logging, session, cache, queue, and mail settings. Compose overrides the Laravel `DB_*` values with the root PostgreSQL settings. `FRONTEND_URL` controls the allowed frontend CORS origin. Keep database credentials and any future server API key out of browser code and source control.
 
-| Variable | Owner | Purpose | Status |
-| --- | --- | --- | --- |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Root `.env` → Compose database and API | Local database name and credentials | Required now for Docker |
-| `APP_NAME`, `APP_ENV`, `APP_DEBUG`, `APP_URL` | Laravel `backend/.env` | App identity, mode, debug, URL | Used now; set production values when deployed |
-| `APP_KEY` | Laravel `backend/.env` | Laravel encryption key; generated by Artisan | Required now |
-| `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Laravel; Compose overrides for containers | PostgreSQL connection | Required now for database operations |
-| `FRONTEND_URL` | Laravel `backend/.env` | Allowed CORS origin; defaults to `http://localhost:5173` | Used now |
-| `LOG_CHANNEL`, `LOG_LEVEL`, `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION`, `MAIL_MAILER` | Laravel `backend/.env` | Local framework behavior | Configured now |
-| Browser Maps key; server Places key | **Planned**, not defined in this repository | Separate restricted Google credentials | Required only for planned integration |
+## Checks
 
-Never put the database password or a future server Places key in a Vite browser variable.
-
-## Development checks
-
-Run from the repository root after the quick start. `npm ci` requires Node.js and npm on the host; the Laravel and database commands use the API container.
+From the repository root, with Node.js/npm available and the environment files copied:
 
 ```powershell
 npm --prefix frontend ci
@@ -100,39 +52,8 @@ docker compose exec api php artisan test
 docker compose exec api php artisan db:show --database=pgsql
 ```
 
-The last command is the **pending PostgreSQL connection check**; migrations also remain pending in a running container. In the earlier scaffold verification, the frontend lint/build passed, three Laravel tests passed with local PHP and in-memory SQLite, and `docker compose config` passed after example environment files were copied. Those tests do not prove a live PostgreSQL connection. Docker Desktop's Linux engine was unavailable, so image builds, container startup, host URLs, API tests inside Docker, migrations, and the database connection remain unverified. This README edit has not changed application code.
+The last two commands require running containers. Laravel tests use in-memory SQLite; `db:show` is the separate PostgreSQL connection check. Frontend lint/build, local Laravel tests, and Compose configuration passed during scaffold setup. Docker image builds, container startup, host URLs, migrations, and live PostgreSQL connectivity remain unverified here.
 
-## API
+## API and limitations
 
-| Route | Current behavior |
-| --- | --- |
-| `GET /api/health` | HTTP 200, JSON `{"success":true}`; no database query |
-
-The health test also checks that a preflight request from `http://localhost:5173` receives the configured CORS header.
-
-### Planned API
-
-A nearby search route accepting a location or chosen point and returning place summaries is **planned**. Its path and response contract have not been set or implemented.
-
-## Google integration and cost controls (planned)
-
-Use a browser key restricted to the site's HTTP referrers and Maps JavaScript API, plus a separate server key kept only in Laravel and restricted to the needed Places API. Choose supported application restrictions for the backend deployment. Request Places data only when a user submits a search, use a narrow [field mask](https://developers.google.com/maps/documentation/places/web-service/usage-and-billing), and set quotas plus billing alerts. Display Google and third-party [attribution](https://developers.google.com/maps/documentation/places/web-service/policies) as required. Google documents [key restrictions](https://developers.google.com/maps/api-security-best-practices), [usage and billing](https://developers.google.com/maps/documentation/javascript/usage-and-billing), and [cost controls](https://developers.google.com/maps/billing-and-pricing/manage-costs). These sources were checked **2026-11-02**; no price or quota is assumed here.
-
-## Privacy and data handling
-
-**Intended MVP policy:** ask for location only when the user chooses it; also offer a manually chosen point. Send only the coordinates needed for a submitted search, avoid storing precise user location, and do not persist restaurant records. Treat Google Places content as request-time display data, subject to Google's [storage and attribution rules](https://developers.google.com/maps/documentation/places/web-service/policies); do not build a permanent Places cache. **Current code:** it does not request, send, or store user location or Places content. The database has Laravel's default migrations, not a restaurant table.
-
-## Deployment plan (planned)
-
-Deploy the static frontend to Vercel, the Laravel Docker image to Render, and PostgreSQL to Supabase. This is **planned**, not deployed or tested. Before deployment, use HTTPS, set the production frontend origin in `FRONTEND_URL`, provide server environment secrets, run Laravel migrations against Supabase PostgreSQL, and verify the health and database checks. Budget for free-tier constraints: Render free web services may sleep and have ephemeral filesystems; Supabase free projects may pause with low activity; Vercel Hobby has usage limits. Check the current [Render](https://render.com/docs/free), [Supabase](https://supabase.com/docs/guides/platform/free-project-pausing), and [Vercel](https://vercel.com/docs/limits) documentation before choosing a plan (checked **2026-11-02**).
-
-## Troubleshooting and known gaps
-
-- If Compose reports `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine`, start Docker Desktop and wait for its Linux engine. This prevented the runtime checks listed above.
-- If Compose reports a missing `backend/.env`, copy both example files as shown in quick start. If ports are occupied, free `5173`, `8000`, or `5432` before starting.
-- A healthy `/api/health` response confirms routing only; use the database check above to verify PostgreSQL separately.
-- Search, map pins, geolocation, Google keys, restaurant persistence, and cloud deployment are not implemented.
-
-## Next milestone
-
-**Planned:** location or manual map point → Laravel search → map pins.
+`GET /api/health` returns HTTP 200 with `{"success":true}` and does not query PostgreSQL. The feature tests also cover a CORS preflight request from the local frontend origin. There is no search route yet. Browser location, Google Maps and Places, result cards, map pins, directions, authentication, and hosted deployment are future work. No user location or Google place content is collected by the current code.

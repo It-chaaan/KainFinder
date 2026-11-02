@@ -1,6 +1,7 @@
 /.env
 /.tools/
 /.npm-cache/
+/.local/
 /.laravel-extract/
 /.laravel-13.zip
 /frontend/node_modules/
