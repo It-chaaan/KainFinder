@@ -1,0 +1,11 @@
+/.env
+/.tools/
+/.npm-cache/
+/.laravel-extract/
+/.laravel-13.zip
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.env
+/backend/vendor/
+/backend/.env
+/backend/.phpunit.cache/
