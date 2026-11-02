@@ -4,6 +4,8 @@
 
 KainFinder aims to help people discover food around a chosen point in Metro Manila. The **planned MVP** is: use browser location or choose a map point, submit a nearby search, and show matching places as map pins. Today this repository is a development scaffold: a responsive landing page, one Laravel health endpoint, and a local PostgreSQL service. There is no search, map, geolocation request, Google integration, restaurant data, or authentication yet.
 
+The proposed interface direction is in [docs/design.md](docs/design.md).
+
 ## Architecture
 
 Solid arrows show implemented or configured paths; dotted arrows are **planned**. The database connection is configured in Compose and Laravel, but the health route does not query it and container runtime has not been verified.
