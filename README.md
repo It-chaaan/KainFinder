@@ -1,6 +1,6 @@
 ﻿# KainFinder
 
-KainFinder is a Metro Manila food discovery project. The intended MVP will let people search around their location or a chosen point and inspect places on a map. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
+KainFinder is a Metro Manila food discovery project. The planned public MVP will let people search around their location or a chosen point and inspect places on a real Google Map, without an account. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
 
 ## Architecture
 
@@ -8,9 +8,10 @@ KainFinder is a Metro Manila food discovery project. The intended MVP will let p
 Browser → React / TypeScript / Vite / Tailwind (frontend/)
 Browser → GET /api/health → Laravel (backend/)
 Laravel → PostgreSQL (configured in Compose; live connection unverified)
+Planned public search: browser point → React → Maps JavaScript Places Text Search → Google map pins and cards
 ```
 
-The browser does not access PostgreSQL. Future Google Places requests belong in Laravel; a future map belongs in the frontend. The health route currently makes no database query.
+The browser does not access PostgreSQL. Planned public search calls Google's `Place.searchByText` from React; Laravel and PostgreSQL are outside that first search flow. Laravel remains the API for future application-owned data. The health route currently makes no database query.
 
 ## Repository
 
@@ -37,7 +38,7 @@ Open <http://localhost:5173> for the landing page and <http://localhost:8000/api
 
 ## Environment variables
 
-Copy the example files; local `.env` files are Git-ignored. The root file supplies `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` to both database and API containers. Laravel's `backend/.env` supplies `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL`, `FRONTEND_URL`, and its local `DB_*`, logging, session, cache, queue, and mail settings. Compose overrides the Laravel `DB_*` values with the root PostgreSQL settings. `FRONTEND_URL` controls the allowed frontend CORS origin. Keep database credentials and any future server API key out of browser code and source control.
+Copy the example files; local `.env` files are Git-ignored. The root file supplies `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` to both database and API containers. Laravel's `backend/.env` supplies `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL`, `FRONTEND_URL`, and its local `DB_*`, logging, session, cache, queue, and mail settings. Compose overrides the Laravel `DB_*` values with the root PostgreSQL settings. `FRONTEND_URL` controls the allowed frontend CORS origin. Keep database credentials out of browser code and source control. A future browser Maps key will be visible to users and must be restricted to authorized websites and APIs; none is configured today.
 
 ## Checks
 
@@ -56,4 +57,4 @@ The last two commands require running containers. Laravel tests use in-memory SQ
 
 ## API and limitations
 
-`GET /api/health` returns HTTP 200 with `{"success":true}` and does not query PostgreSQL. The feature tests also cover a CORS preflight request from the local frontend origin. There is no search route yet. Browser location, Google Maps and Places, result cards, map pins, directions, authentication, and hosted deployment are future work. No user location or Google place content is collected by the current code.
+`GET /api/health` returns HTTP 200 with `{"success":true}` and does not query PostgreSQL. The feature tests also cover a CORS preflight request from the local frontend origin. There is no search route yet. Browser location, Google Maps and Places, result cards, map pins, and directions through Google Maps URLs are future work. PostgreSQL, accounts, and JWT are not required for the first public-search flow; a production database host is undecided. No user location or Google place content is collected by the current code.
