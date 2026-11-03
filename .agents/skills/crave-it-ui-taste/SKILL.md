@@ -5,7 +5,7 @@ description: Design, implement, or review Crave It frontend UI and interactive p
 
 # Crave It UI taste
 
-Apply this skill to frontend UI or prototype work. Read [the design reference](../../../docs/design.md) for proposed screens, tokens, and states. The current app is only a landing scaffold; do not claim the search or map journey already works.
+Apply this skill to frontend UI or prototype work. Read [the design reference](../../../docs/design.md) for screens, tokens, and states. The current app implements a Google map and browser-side search prototype; distinguish implemented desktop behavior from real-phone behavior that still needs verification.
 
 ## Direction
 

@@ -1,60 +1,60 @@
 # Crave It
 
-Crave It is a kainan finder app for Metro Manila. The planned public MVP will let people search around their location or a chosen point and inspect places on a real Google Map, without an account. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
+Crave It is a Metro Manila food discovery prototype. The React app displays a real Google Map, lets people choose a city center, tap a map point, or request browser location, and runs Places (New) `Place.searchByText` **only when Search is submitted**. Up to eight place suggestions appear as linked map pins and cards; cards show locally calculated straight-line distance when coordinates are available. Directions opens Google Maps. A city is a search center, not a strict boundary. A dish query suggests places and does not prove a dish is on the menu.
+
+The user confirmed a live desktop “ramen” search on localhost using a Maps Demo Key. A dedicated narrow browser check on 2026-11-03 also verified live “ramen” and “sisig” searches, city-center changes, linked cards/pins, the skip-to-results link, and visible Google map attribution. Real-phone location permissions, the external Directions handoff, and production deployment remain unverified.
 
 ## Architecture
 
 ```text
-Browser → React / TypeScript / Vite / Tailwind (frontend/)
-Browser → GET /api/health → Laravel (backend/)
-Laravel → PostgreSQL (configured in Compose; live connection unverified)
-Planned public search: browser point → React → Maps JavaScript Places Text Search → Google map pins and cards
+Browser -> React / TypeScript / Vite -> Maps JavaScript API + Places (New)
+Browser -> GET /api/health -> Laravel
+Laravel -> PostgreSQL (configured in Compose; not used by public search)
 ```
 
-The browser does not access PostgreSQL. Planned public search calls Google's `Place.searchByText` from React; Laravel and PostgreSQL are outside that first search flow. Laravel remains the API for future application-owned data. The health route currently makes no database query.
+Laravel currently has a health route, not a search or directions endpoint. The health route does not check PostgreSQL. Accounts, saved places, and deployment are not implemented. See [docs/design.md](docs/design.md) for UI direction and [frontend/README.md](frontend/README.md) for frontend setup and styling.
 
-## Repository
+## Run the frontend
 
-- `frontend/src/App.tsx` — landing page; `frontend/package.json` — lint and build commands.
-- `backend/routes/api.php` — health route; `backend/tests/Feature/HealthTest.php` — response and CORS tests.
-- `compose.yaml` — local frontend, API, and PostgreSQL services.
-- `.env.example` and `backend/.env.example` — local configuration templates; `docs/design.md` — proposed interface reference.
+From the repository root:
 
-## Prerequisites and start
+```powershell
+Copy-Item frontend/.env.example frontend/.env
+# Set VITE_GOOGLE_MAPS_API_KEY in frontend/.env.
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
 
-Install Docker Desktop with its Linux engine running and Docker Compose. Ports `5173`, `8000`, and `5432` must be available. From the repository root in PowerShell:
+Open the local URL printed by Vite. A Maps Demo Key supports prototyping only and has limited features and quotas; do not deploy it as a production credential. For production, use an appropriately configured Google Cloud project, enable the required Maps JavaScript and Places (New) APIs and billing, and restrict the browser key to authorized websites and APIs. The browser key is visible to visitors; never put server secrets in frontend code.
+
+The app loads a Google map and keeps its own results beside or below it so Google's built-in logo, controls, copyright, and attribution remain visible. It requests only place ID, name, address, and location. Search uses an approximate 6 km location bias, not an administrative Metro Manila boundary. Distance is calculated in the browser from coordinates, not a route or travel time. Results without coordinates remain in the list with an unavailable-distance label and no map pin or Directions link. It does not persist the query, precise location, or returned Places content; submitting a search sends the query and chosen center to Google.
+
+The app links to draft [Privacy](frontend/public/privacy.html) and [Terms of use](frontend/public/terms.html) pages. **They are not launch-ready:** the owner must supply a legal name and contact email and review the deployed service and Google policy requirements before publication.
+
+## Run the full local stack
+
+Docker Desktop with its Linux engine is required for Compose. From the repository root:
 
 ```powershell
 Copy-Item .env.example .env
 Copy-Item backend/.env.example backend/.env
-# Replace the example PostgreSQL password in .env with your own local value.
+# Choose a local POSTGRES_PASSWORD in .env.
 docker compose build
 docker compose run --rm api php artisan key:generate
 docker compose up -d
 docker compose exec api php artisan migrate
 ```
 
-Open <http://localhost:5173> for the landing page and <http://localhost:8000/api/health> for `{"success":true}`. Stop with `docker compose down`. These startup commands match the Compose configuration, but the running stack has **not** been verified in this workspace because the Docker Linux engine was unavailable.
+If `APP_KEY` is already set in `backend/.env`, do not regenerate it. The root `.env` provides PostgreSQL settings; `backend/.env` provides Laravel settings. Both and `frontend/.env` are Git-ignored. Compose runs the frontend at <http://localhost:5173> and the API health route at <http://localhost:8000/api/health>. Stop with `docker compose down`. Live database connectivity and container startup are separate checks from the frontend search.
 
-## Environment variables
-
-Copy the example files; local `.env` files are Git-ignored. The root file supplies `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` to both database and API containers. Laravel's `backend/.env` supplies `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL`, `FRONTEND_URL`, and its local `DB_*`, logging, session, cache, queue, and mail settings. Compose overrides the Laravel `DB_*` values with the root PostgreSQL settings. `FRONTEND_URL` controls the allowed frontend CORS origin. Keep database credentials out of browser code and source control. A future browser Maps key will be visible to users and must be restricted to authorized websites and APIs; none is configured today.
-
-## Checks
-
-From the repository root, with Node.js/npm available and the environment files copied:
+## Checks and remaining verification
 
 ```powershell
-npm --prefix frontend ci
 npm --prefix frontend run lint
 npm --prefix frontend run build
+git diff --check
 docker compose config
 docker compose exec api php artisan test
-docker compose exec api php artisan db:show --database=pgsql
 ```
 
-The last two commands require running containers. Laravel tests use in-memory SQLite; `db:show` is the separate PostgreSQL connection check. Frontend lint/build, local Laravel tests, and Compose configuration passed during scaffold setup. Docker image builds, container startup, host URLs, migrations, and live PostgreSQL connectivity remain unverified here.
-
-## API and limitations
-
-`GET /api/health` returns HTTP 200 with `{"success":true}` and does not query PostgreSQL. The feature tests also cover a CORS preflight request from the local frontend origin. There is no search route yet. Browser location, Google Maps and Places, result cards, map pins, and directions through Google Maps URLs are future work. PostgreSQL, accounts, and JWT are not required for the first public-search flow; a production database host is undecided. No user location or Google place content is collected by the current code.
+The Docker commands require the local Docker engine and running containers for the Laravel test. A real-phone check still needs a phone-accessible HTTPS origin: allow and deny location, choose a city after denial, tap a point, search, confirm distance labels, select pins and cards, open Directions, follow the legal links, and inspect Google attribution at narrow widths. Before public launch, replace the Demo Key with a production credential, verify usage and quotas, and complete the privacy and terms drafts.

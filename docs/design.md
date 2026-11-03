@@ -1,6 +1,6 @@
 # Crave It design reference
 
-**Status:** proposed direction for the public food discovery MVP, not a finished prototype. The implemented frontend is a responsive landing page in `frontend/src/App.tsx`; it currently uses emerald accents. The monochrome Crave It controls around a real Google Map have not been built. The root `README.md` describes current application behavior.
+**Status:** design reference for the implemented search prototype and future refinements. The React frontend now shows a real Google Map with monochrome Crave It controls, submit-only Places Text Search, cards, pins, local straight-line distance labels, Google Maps directions links, and draft legal pages. A live desktop search on localhost was confirmed by the user; the new distance and legal content and real-phone behavior remain unverified in a browser. The root `README.md` describes current application behavior.
 
 ## User and journey
 
