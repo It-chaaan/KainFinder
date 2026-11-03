@@ -1,12 +1,12 @@
-# KainFinder design reference
+# Crave It design reference
 
-**Status:** proposed direction for the public food discovery MVP, not a finished prototype. The implemented frontend is a responsive landing page in `frontend/src/App.tsx`; it currently uses emerald accents. The monochrome KainFinder controls around a real Google Map have not been built. The root `README.md` describes current application behavior.
+**Status:** proposed direction for the public food discovery MVP, not a finished prototype. The implemented frontend is a responsive landing page in `frontend/src/App.tsx`; it currently uses emerald accents. The monochrome Crave It controls around a real Google Map have not been built. The root `README.md` describes current application behavior.
 
 ## User and journey
 
 The target user is someone in Metro Manila choosing where to eat near their current location or another point. On a phone, they should be able to search without first learning a map interface.
 
-**Proposed primary journey:** choose browser location or place a point manually → submit a food search from React with `Place.searchByText` → scan linked result cards and pins on a real Google Map → inspect one place → open directions through a Google Maps URL. No account is needed. Ask for location only when the user chooses that option; route calculation inside KainFinder is outside this MVP. Laravel and PostgreSQL are not in this first search flow.
+**Proposed primary journey:** choose browser location or place a point manually → submit a food search from React with `Place.searchByText` → scan linked result cards and pins on a real Google Map → inspect one place → open directions through a Google Maps URL. No account is needed. Ask for location only when the user chooses that option; route calculation inside Crave It is outside this MVP. Laravel and PostgreSQL are not in this first search flow.
 
 ## Screen and state inventory (proposed)
 
@@ -39,7 +39,7 @@ Do not present example results as live data in a prototype. Show both successful
 | Border | `#D4D4D4` | Inputs, cards, separators |
 | Focus | `#000000` | Clear outline with offset on light surfaces |
 
-These tokens apply to KainFinder's search controls, cards, sheets, and logo placeholder, **not** to Google map tiles or built-in map UI. Use system sans-serif type. Start with a small type scale (body 16px, supporting text 14px, headings 24–32px) and a 4px spacing base; adjust after viewing real content. Use a temporary text wordmark, not an invented final logo. Selected states need shape, border, and text changes, since color alone must not carry meaning.
+These tokens apply to Crave It's search controls, cards, sheets, and logo placeholder, **not** to Google map tiles or built-in map UI. Use system sans-serif type. Start with a small type scale (body 16px, supporting text 14px, headings 24–32px) and a 4px spacing base; adjust after viewing real content. Use a temporary text wordmark, not an invented final logo. Selected states need shape, border, and text changes, since color alone must not carry meaning.
 
 ## Component behavior (proposed)
 

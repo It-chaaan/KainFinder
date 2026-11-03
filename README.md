@@ -1,6 +1,6 @@
-﻿# KainFinder
+# Crave It
 
-KainFinder is a Metro Manila food discovery project. The planned public MVP will let people search around their location or a chosen point and inspect places on a real Google Map, without an account. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
+Crave It is a kainan finder app for Metro Manila. The planned public MVP will let people search around their location or a chosen point and inspect places on a real Google Map, without an account. **Implemented today:** a responsive React landing page, a Laravel `GET /api/health` endpoint, local CORS configuration, and a Docker Compose setup for frontend, API, and PostgreSQL. Search, maps, geolocation, Google integration, restaurant data, and deployment are not implemented. The proposed UI is documented in [docs/design.md](docs/design.md).
 
 ## Architecture
 
